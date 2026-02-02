@@ -156,7 +156,7 @@ const AnalyticsView = () => {
                                     <TrendingUp size={16} className="text-blue-400" /> Capital Growth
                                 </h3>
                                 <div className="h-[200px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                         <AreaChart data={equity_curve}>
                                             <defs>
                                                 <linearGradient id="colorPnl" x1="0" y1="0" x2="0" y2="1">
