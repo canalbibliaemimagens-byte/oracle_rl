@@ -10,7 +10,8 @@ import LogViewer from './components/LogViewer';
 import AnalyticsView from './components/AnalyticsView';
 import SplashScreen from './components/SplashScreen';
 import LoginPage from './components/LoginPage';
-import { LayoutDashboard, BarChart3, LogOut } from 'lucide-react';
+import PWAUpdatePrompt, { forceAppRefresh } from './components/PWAUpdatePrompt';
+import { LayoutDashboard, BarChart3, LogOut, RefreshCw } from 'lucide-react';
 
 // Main dashboard content (separated for auth check)
 function DashboardContent() {
@@ -65,6 +66,15 @@ function DashboardContent() {
                 <LogOut size={18} />
               </button>
             )}
+
+            {/* Force Refresh Button */}
+            <button
+              onClick={forceAppRefresh}
+              className="flex items-center gap-2 px-2 py-2 rounded-lg text-slate-500 hover:text-blue-400 hover:bg-slate-800/50 transition-all"
+              title="Force Refresh (Clear Cache)"
+            >
+              <RefreshCw size={16} />
+            </button>
           </div>
         </div>
 
@@ -95,6 +105,9 @@ function DashboardContent() {
             <AnalyticsView />
           )}
         </div>
+
+        {/* PWA Update Prompt */}
+        <PWAUpdatePrompt />
 
       </DashboardLayout>
     </WebSocketProvider>

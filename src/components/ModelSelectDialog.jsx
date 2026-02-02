@@ -4,6 +4,10 @@ import { X, Check, Hash, Package, AlertCircle } from 'lucide-react';
 const ModelSelectDialog = ({ isOpen, onClose, onSubmit, availableModels = [], loadedSymbols = [] }) => {
     const [selected, setSelected] = useState(null);
 
+    // Debug log
+    console.log('[ModelSelectDialog] availableModels:', availableModels);
+    console.log('[ModelSelectDialog] loadedSymbols:', loadedSymbols);
+
     // Filter out models whose symbol is already loaded
     // Model folder format: SYMBOL_TIMEFRAME_VERSION (e.g., EURUSD_M15_v1)
     // loadedSymbols contains: ["EURUSD", "GBPUSD", ...]
@@ -12,6 +16,8 @@ const ModelSelectDialog = ({ isOpen, onClose, onSubmit, availableModels = [], lo
         const symbol = modelFolder.split('_')[0];
         return !loadedSymbols.includes(symbol);
     });
+
+    console.log('[ModelSelectDialog] unloadedModels:', unloadedModels);
 
     useEffect(() => {
         if (isOpen) setSelected(null);
@@ -44,12 +50,23 @@ const ModelSelectDialog = ({ isOpen, onClose, onSubmit, availableModels = [], lo
 
                 {/* Body */}
                 <form onSubmit={handleSubmit} className="p-4">
-                    {unloadedModels.length === 0 ? (
+                    {availableModels.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                            <AlertCircle size={48} className="text-amber-400 mb-4" />
+                            <p className="text-lg font-bold text-slate-200 mb-2">No Models Found</p>
+                            <p className="text-sm text-slate-400">
+                                No model folders found in models/ directory.
+                            </p>
+                        </div>
+                    ) : unloadedModels.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-8 text-center">
                             <AlertCircle size={48} className="text-amber-400 mb-4" />
                             <p className="text-lg font-bold text-slate-200 mb-2">All Models Loaded</p>
                             <p className="text-sm text-slate-400">
-                                All available models are already loaded.
+                                All {availableModels.length} available models are already loaded.
+                            </p>
+                            <p className="text-xs text-slate-500 mt-2">
+                                Loaded: {loadedSymbols.join(', ')}
                             </p>
                         </div>
                     ) : (
