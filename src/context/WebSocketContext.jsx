@@ -171,6 +171,32 @@ export const WebSocketProvider = ({ children }) => {
                             });
                         }
                     }
+                    // v4.5.1: MODEL_LOADED event - add new symbol card
+                    else if (message.event === 'MODEL_LOADED') {
+                        const { symbol, timeframe, status, n_states } = message.data;
+                        console.log(`[WS] Model loaded: ${symbol}`);
+                        setSymbolsState(prev => ({
+                            ...prev,
+                            [symbol]: {
+                                status: status || 'WARMUP',
+                                timeframe: timeframe || 'M15',
+                                n_states: n_states,
+                                position: { direction: '', size: 0, pnl: 0, pnl_pips: 0, open_price: 0 },
+                                prediction: { hmm_state: '-', action: 'WAIT' },
+                                stats: { win_rate: 0, trades: 0 }
+                            }
+                        }));
+                    }
+                    // v4.5.1: MODEL_UNLOADED event - remove symbol card
+                    else if (message.event === 'MODEL_UNLOADED') {
+                        const { symbol } = message.data;
+                        console.log(`[WS] Model unloaded: ${symbol}`);
+                        setSymbolsState(prev => {
+                            const next = { ...prev };
+                            delete next[symbol];
+                            return next;
+                        });
+                    }
                     else if (message.cmd === 'GET_ANALYTICS') {
                         if (message.error) {
                             setAnalyticsData({ error: message.error });

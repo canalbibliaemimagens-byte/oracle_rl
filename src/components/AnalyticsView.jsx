@@ -143,7 +143,7 @@ const AnalyticsView = () => {
                                 <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2">
                                     <TrendingUp size={16} className="text-blue-400" /> Capital Growth
                                 </h3>
-                                <div className="h-[250px] w-full">
+                                <div className="h-[200px] w-full">
                                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                                         <AreaChart data={equity_curve}>
                                             <defs>
@@ -156,7 +156,8 @@ const AnalyticsView = () => {
                                             <XAxis dataKey="timestamp" hide />
                                             <YAxis stroke="#94a3b8" tickFormatter={(val) => `$${val}`} domain={['auto', 'auto']} fontSize={11} />
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9', fontSize: '12px' }}
+                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '12px' }}
+                                                labelStyle={{ color: '#f1f5f9' }}
                                                 itemStyle={{ color: '#60a5fa' }}
                                                 formatter={(value) => [`$${value}`, 'Balance']}
                                                 labelFormatter={() => ''}
@@ -166,6 +167,73 @@ const AnalyticsView = () => {
                                     </ResponsiveContainer>
                                 </div>
                             </div>
+
+                            {/* Drawdown Chart */}
+                            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2">
+                                    <AlertTriangle size={16} className="text-red-400" /> Drawdown
+                                </h3>
+                                <div className="h-[180px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                        <AreaChart data={(() => {
+                                            // Calculate drawdown from equity curve
+                                            let peak = 0;
+                                            return equity_curve.map((item, i) => {
+                                                peak = Math.max(peak, item.pnl);
+                                                const dd = peak > 0 ? ((item.pnl - peak) / peak) * 100 : 0;
+                                                return { ...item, dd: Math.min(0, dd) };
+                                            });
+                                        })()}>
+                                            <defs>
+                                                <linearGradient id="colorDD" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
+                                                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                            <XAxis hide />
+                                            <YAxis stroke="#94a3b8" tickFormatter={(val) => `${val}%`} domain={['auto', 0]} fontSize={11} />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '12px' }}
+                                                labelStyle={{ color: '#f1f5f9' }}
+                                                itemStyle={{ color: '#f87171' }}
+                                                formatter={(value) => [`${value.toFixed(2)}%`, 'Drawdown']}
+                                                labelFormatter={() => ''}
+                                            />
+                                            <Area type="monotone" dataKey="dd" stroke="#ef4444" fillOpacity={1} fill="url(#colorDD)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            {/* P/L per Trade Chart */}
+                            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                <h3 className="text-sm font-bold text-slate-100 mb-4 flex items-center gap-2">
+                                    <BarChart2 size={16} className="text-emerald-400" /> P/L per Trade
+                                </h3>
+                                <div className="h-[180px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                        <BarChart data={equity_curve.map((item, i) => ({ ...item, idx: i + 1 }))}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                            <XAxis dataKey="idx" hide />
+                                            <YAxis stroke="#94a3b8" tickFormatter={(val) => `$${val}`} fontSize={11} />
+                                            <Tooltip
+                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '12px' }}
+                                                labelStyle={{ color: '#f1f5f9' }}
+                                                itemStyle={{ color: '#f1f5f9' }}
+                                                formatter={(value) => [`$${value}`, 'Trade P/L']}
+                                                labelFormatter={(idx) => `Trade #${idx}`}
+                                            />
+                                            <Bar dataKey="trade_pnl" radius={[2, 2, 0, 0]}>
+                                                {equity_curve.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.trade_pnl >= 0 ? '#4ade80' : '#f87171'} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
 
                             {/* Direction Stats */}
                             {direction_stats && direction_stats.length > 0 && (
@@ -292,7 +360,9 @@ const AnalyticsView = () => {
                                                         width={60}
                                                     />
                                                     <Tooltip
-                                                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9', fontSize: '12px' }}
+                                                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '12px' }}
+                                                        labelStyle={{ color: '#f1f5f9' }}
+                                                        itemStyle={{ color: '#f1f5f9' }}
                                                         cursor={{ fill: '#1e293b', opacity: 0.5 }}
                                                         formatter={(value, name, props) => [
                                                             `$${value} | ${props.payload.count} trades | ${props.payload.win_rate}% WR`,
@@ -385,7 +455,9 @@ const AnalyticsView = () => {
                                             />
                                             <YAxis stroke="#94a3b8" tickFormatter={(val) => `$${val}`} fontSize={11} />
                                             <Tooltip
-                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9', fontSize: '12px' }}
+                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '12px' }}
+                                                labelStyle={{ color: '#f1f5f9' }}
+                                                itemStyle={{ color: '#f1f5f9' }}
                                                 cursor={{ fill: '#1e293b', opacity: 0.5 }}
                                                 formatter={(value) => [`$${value}`, 'Net Profit']}
                                             />
@@ -500,7 +572,9 @@ const ChartCard = ({ title, data, xKey, barKey, xPrefix = '', xSuffix = '' }) =>
                     />
                     <YAxis stroke="#94a3b8" tickFormatter={(val) => `$${val}`} fontSize={11} />
                     <Tooltip
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#f1f5f9', fontSize: '12px' }}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '12px' }}
+                        labelStyle={{ color: '#f1f5f9' }}
+                        itemStyle={{ color: '#f1f5f9' }}
                         cursor={{ fill: '#1e293b', opacity: 0.5 }}
                         formatter={(value) => [`$${value}`, 'Net Profit']}
                     />

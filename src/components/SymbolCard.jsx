@@ -3,7 +3,7 @@ import { useWebSocket } from '../context/WebSocketContext';
 import {
     ArrowUp, ArrowDown, Activity, TrendingUp, TrendingDown,
     Clock, RefreshCw, PlayCircle, Ban, XCircle, FastForward,
-    Target, Brain, Settings
+    Target, Brain, Settings, Trash2
 } from 'lucide-react';
 import ConfirmDialog from './ConfirmDialog';
 import SymbolConfigModal from './SymbolConfigModal';
@@ -26,6 +26,7 @@ const SymbolCard = ({ symbol, data }) => {
     // Action State
     const [confirmAction, setConfirmAction] = useState(null);
     const [isConfigOpen, setIsConfigOpen] = useState(false);
+    const [showActions, setShowActions] = useState(false);  // Mobile: tap to show
 
     // Helpers
     const getStatusColor = (s) => {
@@ -71,6 +72,15 @@ const SymbolCard = ({ symbol, data }) => {
         }
     };
 
+    const handleUnload = () => {
+        setConfirmAction({
+            type: 'UNLOAD_MODEL',
+            title: 'Unload Model?',
+            message: `Unload ${symbol}? This will close any open position and remove the model.`,
+            variant: 'danger'
+        });
+    };
+
     const executeAction = () => {
         if (!confirmAction) return;
         const actions = {
@@ -78,7 +88,8 @@ const SymbolCard = ({ symbol, data }) => {
             'FORCE_NORMAL': 'FORCE_NORMAL',
             'BLOCK': 'BLOCK_SYMBOL',
             'CLOSE_POSITION': 'CLOSE_POSITION',
-            'RELOAD_MODEL': 'RELOAD_MODEL'
+            'RELOAD_MODEL': 'RELOAD_MODEL',
+            'UNLOAD_MODEL': 'UNLOAD_MODEL'
         };
         if (actions[confirmAction.type]) {
             sendCommand(actions[confirmAction.type], { symbol });
@@ -88,8 +99,10 @@ const SymbolCard = ({ symbol, data }) => {
 
     return (
         <>
-            <div className={`relative group rounded-xl border backdrop-blur-sm transition-all duration-300 hover:shadow-lg p-3 flex flex-col justify-between min-h-[220px] ${status === 'BLOCKED' ? 'bg-slate-900/40 border-slate-800 opacity-75' : 'bg-slate-800/40 border-slate-700/50'
-                }`}>
+            <div
+                onClick={() => setShowActions(prev => !prev)}
+                className={`relative group rounded-xl border backdrop-blur-sm transition-all duration-300 hover:shadow-lg p-3 flex flex-col justify-between min-h-[220px] cursor-pointer ${status === 'BLOCKED' ? 'bg-slate-900/40 border-slate-800 opacity-75' : 'bg-slate-800/40 border-slate-700/50'
+                    }`}>
 
                 {/* Header: Dot + Symbol + Timeframe */}
                 <div className="flex items-center gap-2 mb-3">
@@ -172,8 +185,11 @@ const SymbolCard = ({ symbol, data }) => {
                         WR: <span className="text-slate-500">{stats.win_rate}%</span>
                     </div>
 
-                    {/* Actions (Centered & Hover) */}
-                    <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-slate-800/90 px-2 py-0.5 rounded-full border border-slate-700/50 shadow-sm">
+                    {/* Actions (Visible on hover OR on tap for mobile) */}
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className={`absolute left-1/2 -translate-x-1/2 flex items-center gap-1 transition-opacity z-10 bg-slate-800/90 px-2 py-0.5 rounded-full border border-slate-700/50 shadow-sm ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                    >
                         <button onClick={() => setIsConfigOpen(true)} className="p-0.5 rounded hover:bg-slate-600 text-slate-400 hover:text-slate-200 transition-colors" title="Settings">
                             <Settings size={10} />
                         </button>
@@ -188,8 +204,11 @@ const SymbolCard = ({ symbol, data }) => {
                         <button onClick={handleToggleBlock} className={`p-0.5 rounded transition-colors ${status === 'BLOCKED' ? 'text-emerald-500 hover:text-emerald-400' : 'text-rose-500 hover:text-rose-400'}`} title={status === 'BLOCKED' ? "Unblock" : "Block"}>
                             {status === 'BLOCKED' ? <PlayCircle size={10} /> : <Ban size={10} />}
                         </button>
-                        <button onClick={handleClosePosition} disabled={!hasPosition} className="p-0.5 rounded text-slate-400 hover:text-red-400 disabled:opacity-30 transition-colors" title="Close">
+                        <button onClick={handleClosePosition} disabled={!hasPosition} className="p-0.5 rounded text-slate-400 hover:text-red-400 disabled:opacity-30 transition-colors" title="Close Position">
                             <XCircle size={10} />
+                        </button>
+                        <button onClick={handleUnload} className="p-0.5 rounded text-slate-400 hover:text-orange-400 transition-colors" title="Unload Model">
+                            <Trash2 size={10} />
                         </button>
                     </div>
 

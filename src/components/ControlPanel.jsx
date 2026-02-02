@@ -26,30 +26,29 @@ const ControlPanel = () => {
 
     return (
         <>
-            <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
+            <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-xl p-4">
+                <div className="flex items-center gap-2 mb-3 md:mb-0">
                     <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-100">
                         <Settings size={20} className="text-slate-400" />
                         Controls
                     </h2>
                 </div>
 
-                <div className="flex items-center gap-3">
+                {/* Mobile: horizontal scroll, Desktop: flex wrap */}
+                <div className="flex items-center gap-2 mt-3 overflow-x-auto pb-2 md:pb-0 md:overflow-visible md:flex-wrap scrollbar-hide">
                     {/* Settings */}
                     <button
                         onClick={() => setIsSettingsOpen(true)}
-                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex-shrink-0"
                         title="Settings"
                     >
                         <Settings size={20} />
                     </button>
 
-                    <div className="h-6 w-px bg-slate-700 mx-1"></div>
-
                     {/* Load Model (New) */}
                     <button
                         onClick={() => setIsLoadModelOpen(true)}
-                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 transition-colors"
+                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 transition-colors flex-shrink-0"
                         title="Load New Model"
                     >
                         <Hash size={20} />
@@ -58,53 +57,55 @@ const ControlPanel = () => {
                     {/* Reload Models */}
                     <button
                         onClick={handleReloadAll}
-                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-blue-400 hover:text-blue-300 transition-colors"
+                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-blue-400 hover:text-blue-300 transition-colors flex-shrink-0"
                         title="Reload AI Models"
                     >
                         <RefreshCw size={20} />
                     </button>
 
+                    <div className="h-6 w-px bg-slate-700 mx-1 flex-shrink-0 hidden md:block"></div>
+
                     {/* Pause/Resume */}
                     <button
                         onClick={handleTogglePause}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${isRunning
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all flex-shrink-0 text-sm ${isRunning
                             ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
                             : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
                             }`}
                     >
-                        {isRunning ? <><Pause size={18} /> Pause System</> : <><Play size={18} /> Resume System</>}
+                        {isRunning ? <><Pause size={16} /> <span className="hidden sm:inline">Pause</span></> : <><Play size={16} /> <span className="hidden sm:inline">Resume</span></>}
                     </button>
 
                     {/* Close All */}
                     <button
                         onClick={handleCloseAll}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 transition-all"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 transition-all flex-shrink-0 text-sm"
                     >
-                        <RefreshCw size={18} /> Close All Positions
+                        <RefreshCw size={16} /> <span className="hidden sm:inline">Close All</span>
                     </button>
 
                     {/* Emergency Stop */}
                     {!showConfirm ? (
                         <button
                             onClick={() => setShowConfirm(true)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all"
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all flex-shrink-0 text-sm"
                         >
-                            <Octagon size={18} /> Emergency Stop
+                            <Octagon size={16} /> <span className="hidden sm:inline">Emergency</span>
                         </button>
                     ) : (
-                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4">
-                            <span className="text-sm font-bold text-red-500">Are you sure?</span>
+                        <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 flex-shrink-0">
+                            <span className="text-xs font-bold text-red-500 whitespace-nowrap">Sure?</span>
                             <button
                                 onClick={handleEmergencyStop}
-                                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded shadow-lg text-sm font-bold"
+                                className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded shadow-lg text-xs font-bold"
                             >
-                                CONFIRM
+                                YES
                             </button>
                             <button
                                 onClick={() => setShowConfirm(false)}
-                                className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-sm"
+                                className="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded text-xs"
                             >
-                                Cancel
+                                No
                             </button>
                         </div>
                     )}
