@@ -198,6 +198,13 @@ export const WebSocketProvider = ({ children }) => {
                             return next;
                         });
                     }
+                    // Handle command responses (type: "response")
+                    else if (message.type === 'response') {
+                        console.log('[WS] Response received:', message.cmd, message);
+                        if (message.cmd === 'GET_AVAILABLE_MODELS' && message.available_models) {
+                            setAvailableModels(message.available_models);
+                        }
+                    }
                     else if (message.cmd === 'GET_AVAILABLE_MODELS' && message.available_models) {
                         setAvailableModels(message.available_models);
                     }
