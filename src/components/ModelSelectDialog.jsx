@@ -4,9 +4,7 @@ import { X, Check, Hash, Package, AlertCircle } from 'lucide-react';
 const ModelSelectDialog = ({ isOpen, onClose, onSubmit, availableModels = [], loadedSymbols = [] }) => {
     const [selected, setSelected] = useState(null);
 
-    // Debug log
-    console.log('[ModelSelectDialog] availableModels:', availableModels);
-    console.log('[ModelSelectDialog] loadedSymbols:', loadedSymbols);
+
 
     // Filter out models whose symbol is already loaded
     // Model folder format: SYMBOL_TIMEFRAME_VERSION (e.g., EURUSD_M15_v1)
@@ -17,7 +15,7 @@ const ModelSelectDialog = ({ isOpen, onClose, onSubmit, availableModels = [], lo
         return !loadedSymbols.includes(symbol);
     });
 
-    console.log('[ModelSelectDialog] unloadedModels:', unloadedModels);
+
 
     useEffect(() => {
         if (isOpen) setSelected(null);
