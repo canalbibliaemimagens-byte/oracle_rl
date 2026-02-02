@@ -204,19 +204,13 @@ export const WebSocketProvider = ({ children }) => {
                         if (message.cmd === 'GET_AVAILABLE_MODELS' && message.available_models) {
                             setAvailableModels(message.available_models);
                         }
-                    }
-                    else if (message.cmd === 'GET_AVAILABLE_MODELS' && message.available_models) {
-                        setAvailableModels(message.available_models);
-                    }
-                    else if (message.cmd === 'GET_ANALYTICS') {
-                        if (message.error) {
-                            setAnalyticsData({ error: message.error });
-                        } else if (message.analytics) {
-                            setAnalyticsData(message.analytics);
+                        else if (message.cmd === 'GET_ANALYTICS') {
+                            if (message.error) {
+                                setAnalyticsData({ error: message.error });
+                            } else if (message.analytics) {
+                                setAnalyticsData(message.analytics);
+                            }
                         }
-                    }
-                    else if (message.analytics) {
-                        setAnalyticsData(message.analytics);
                     }
                 } catch (e) {
                     console.error('[WS] Parse error:', e);
