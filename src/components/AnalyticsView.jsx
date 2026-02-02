@@ -81,6 +81,18 @@ const AnalyticsView = () => {
             return hmm_stats_by_symbol[modelSymbol] || [];
         };
 
+        // Get equity curve filtered by model symbol (calculates running PnL for that symbol)
+        const getModelEquityCurve = () => {
+            if (!modelSymbol || !equity_curve) return [];
+            const filtered = equity_curve.filter(e => e.symbol === modelSymbol);
+            // Recalculate running PnL for this symbol only
+            let running = 0;
+            return filtered.map((item, i) => {
+                running += item.trade_pnl;
+                return { ...item, pnl: running, idx: i + 1 };
+            });
+        };
+
         // Helper to filter HMM stats
         const getHmmData = () => {
             if (selectedSymbol === 'ALL') return hmm_stats;
@@ -340,6 +352,106 @@ const AnalyticsView = () => {
                                         />
                                         <ModelKpi label="Avg PnL" value={`$${getModelData().avg_pnl}`} />
                                     </div>
+
+                                    {/* Model Equity Charts Grid */}
+                                    {getModelEquityCurve().length > 0 && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                            {/* Capital Growth */}
+                                            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                                <h3 className="text-sm font-bold text-slate-100 mb-3 flex items-center gap-2">
+                                                    <TrendingUp size={14} className="text-blue-400" /> Capital - {modelSymbol}
+                                                </h3>
+                                                <div className="h-[160px] w-full">
+                                                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                                        <AreaChart data={getModelEquityCurve()}>
+                                                            <defs>
+                                                                <linearGradient id="colorModelPnl" x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                                            <XAxis hide />
+                                                            <YAxis stroke="#94a3b8" tickFormatter={(val) => `$${val}`} fontSize={10} width={45} />
+                                                            <Tooltip
+                                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px' }}
+                                                                labelStyle={{ color: '#f1f5f9' }}
+                                                                itemStyle={{ color: '#60a5fa' }}
+                                                                formatter={(value) => [`$${value}`, 'Balance']}
+                                                                labelFormatter={() => ''}
+                                                            />
+                                                            <Area type="monotone" dataKey="pnl" stroke="#3b82f6" fillOpacity={1} fill="url(#colorModelPnl)" />
+                                                        </AreaChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+
+                                            {/* Drawdown */}
+                                            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                                <h3 className="text-sm font-bold text-slate-100 mb-3 flex items-center gap-2">
+                                                    <AlertTriangle size={14} className="text-red-400" /> Drawdown - {modelSymbol}
+                                                </h3>
+                                                <div className="h-[160px] w-full">
+                                                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                                        <AreaChart data={(() => {
+                                                            let peak = 0;
+                                                            return getModelEquityCurve().map((item) => {
+                                                                peak = Math.max(peak, item.pnl);
+                                                                const dd = peak > 0 ? ((item.pnl - peak) / peak) * 100 : 0;
+                                                                return { ...item, dd: Math.min(0, dd) };
+                                                            });
+                                                        })()}>
+                                                            <defs>
+                                                                <linearGradient id="colorModelDD" x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
+                                                                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                                                                </linearGradient>
+                                                            </defs>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                                            <XAxis hide />
+                                                            <YAxis stroke="#94a3b8" tickFormatter={(val) => `${val}%`} domain={['auto', 0]} fontSize={10} width={45} />
+                                                            <Tooltip
+                                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px' }}
+                                                                labelStyle={{ color: '#f1f5f9' }}
+                                                                itemStyle={{ color: '#f87171' }}
+                                                                formatter={(value) => [`${value.toFixed(2)}%`, 'DD']}
+                                                                labelFormatter={() => ''}
+                                                            />
+                                                            <Area type="monotone" dataKey="dd" stroke="#ef4444" fillOpacity={1} fill="url(#colorModelDD)" />
+                                                        </AreaChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+
+                                            {/* P/L per Trade */}
+                                            <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">
+                                                <h3 className="text-sm font-bold text-slate-100 mb-3 flex items-center gap-2">
+                                                    <BarChart2 size={14} className="text-emerald-400" /> P/L per Trade - {modelSymbol}
+                                                </h3>
+                                                <div className="h-[160px] w-full">
+                                                    <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                                                        <BarChart data={getModelEquityCurve()}>
+                                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                                            <XAxis dataKey="idx" hide />
+                                                            <YAxis stroke="#94a3b8" tickFormatter={(val) => `$${val}`} fontSize={10} width={45} />
+                                                            <Tooltip
+                                                                contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', fontSize: '11px' }}
+                                                                labelStyle={{ color: '#f1f5f9' }}
+                                                                itemStyle={{ color: '#f1f5f9' }}
+                                                                formatter={(value) => [`$${value}`, 'P/L']}
+                                                                labelFormatter={(idx) => `Trade #${idx}`}
+                                                            />
+                                                            <Bar dataKey="trade_pnl" radius={[2, 2, 0, 0]}>
+                                                                {getModelEquityCurve().map((entry, index) => (
+                                                                    <Cell key={`mcell-${index}`} fill={entry.trade_pnl >= 0 ? '#4ade80' : '#f87171'} />
+                                                                ))}
+                                                            </Bar>
+                                                        </BarChart>
+                                                    </ResponsiveContainer>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* HMM Performance Chart */}
                                     <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl p-4">

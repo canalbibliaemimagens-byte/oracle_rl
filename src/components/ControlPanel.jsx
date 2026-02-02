@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useWebSocket } from '../context/WebSocketContext';
 import { Play, Pause, Octagon, Settings, RefreshCw, Hash } from 'lucide-react';
 import SettingsModal from './SettingsModal';
-import InputDialog from './InputDialog';
+import ModelSelectDialog from './ModelSelectDialog';
 
 const ControlPanel = () => {
-    const { systemState, sendCommand } = useWebSocket();
+    const { systemState, sendCommand, symbolsState, availableModels } = useWebSocket();
     const [isLoadModelOpen, setIsLoadModelOpen] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -24,6 +24,12 @@ const ControlPanel = () => {
         if (path) sendCommand('LOAD_MODEL', { path });
     };
 
+    // Fetch available models when dialog opens
+    const handleOpenLoadModel = () => {
+        sendCommand('GET_AVAILABLE_MODELS');
+        setIsLoadModelOpen(true);
+    };
+
     return (
         <>
             <div className="bg-slate-800/50 backdrop-blur-md border border-slate-700 rounded-xl p-4">
@@ -39,28 +45,28 @@ const ControlPanel = () => {
                     {/* Settings */}
                     <button
                         onClick={() => setIsSettingsOpen(true)}
-                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex-shrink-0"
+                        className="p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors flex-shrink-0"
                         title="Settings"
                     >
-                        <Settings size={20} />
+                        <Settings size={24} />
                     </button>
 
                     {/* Load Model (New) */}
                     <button
-                        onClick={() => setIsLoadModelOpen(true)}
-                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 transition-colors flex-shrink-0"
+                        onClick={handleOpenLoadModel}
+                        className="p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 transition-colors flex-shrink-0"
                         title="Load New Model"
                     >
-                        <Hash size={20} />
+                        <Hash size={24} />
                     </button>
 
                     {/* Reload Models */}
                     <button
                         onClick={handleReloadAll}
-                        className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-blue-400 hover:text-blue-300 transition-colors flex-shrink-0"
+                        className="p-3 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-blue-400 hover:text-blue-300 transition-colors flex-shrink-0"
                         title="Reload AI Models"
                     >
-                        <RefreshCw size={20} />
+                        <RefreshCw size={24} />
                     </button>
 
                     <div className="h-6 w-px bg-slate-700 mx-1 flex-shrink-0 hidden md:block"></div>
@@ -68,29 +74,29 @@ const ControlPanel = () => {
                     {/* Pause/Resume */}
                     <button
                         onClick={handleTogglePause}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-all flex-shrink-0 text-sm ${isRunning
+                        className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all flex-shrink-0 text-base ${isRunning
                             ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
                             : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
                             }`}
                     >
-                        {isRunning ? <><Pause size={16} /> <span className="hidden sm:inline">Pause</span></> : <><Play size={16} /> <span className="hidden sm:inline">Resume</span></>}
+                        {isRunning ? <><Pause size={20} /> <span className="hidden sm:inline">Pause</span></> : <><Play size={20} /> <span className="hidden sm:inline">Resume</span></>}
                     </button>
 
                     {/* Close All */}
                     <button
                         onClick={handleCloseAll}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 transition-all flex-shrink-0 text-sm"
+                        className="flex items-center gap-2 px-4 py-3 rounded-lg font-medium bg-slate-700 hover:bg-slate-600 text-slate-200 transition-all flex-shrink-0 text-base"
                     >
-                        <RefreshCw size={16} /> <span className="hidden sm:inline">Close All</span>
+                        <RefreshCw size={20} /> <span className="hidden sm:inline">Close All</span>
                     </button>
 
                     {/* Emergency Stop */}
                     {!showConfirm ? (
                         <button
                             onClick={() => setShowConfirm(true)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all flex-shrink-0 text-sm"
+                            className="flex items-center gap-2 px-4 py-3 rounded-lg font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all flex-shrink-0 text-base"
                         >
-                            <Octagon size={16} /> <span className="hidden sm:inline">Emergency</span>
+                            <Octagon size={20} /> <span className="hidden sm:inline">Emergency</span>
                         </button>
                     ) : (
                         <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 flex-shrink-0">
@@ -115,14 +121,12 @@ const ControlPanel = () => {
             {/* Modals */}
             <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
-            <InputDialog
+            <ModelSelectDialog
                 isOpen={isLoadModelOpen}
                 onClose={() => setIsLoadModelOpen(false)}
                 onSubmit={handleLoadModel}
-                title="Load New AI Model"
-                message="Enter the folder name of the model you want to load (must exist in 'models/' directory):"
-                placeholder="e.g. BTCUSD_H1_v2"
-                icon={Hash}
+                availableModels={availableModels}
+                loadedSymbols={Object.keys(symbolsState || {})}
             />
         </>
     );

@@ -14,6 +14,7 @@ export const WebSocketProvider = ({ children }) => {
     const [lastMessage, setLastMessage] = useState(null);
     const [wsUrl, setWsUrl] = useState(null);
     const [connectionError, setConnectionError] = useState(null);
+    const [availableModels, setAvailableModels] = useState([]);
 
     const socketRef = useRef(null);
 
@@ -197,6 +198,9 @@ export const WebSocketProvider = ({ children }) => {
                             return next;
                         });
                     }
+                    else if (message.cmd === 'GET_AVAILABLE_MODELS' && message.available_models) {
+                        setAvailableModels(message.available_models);
+                    }
                     else if (message.cmd === 'GET_ANALYTICS') {
                         if (message.error) {
                             setAnalyticsData({ error: message.error });
@@ -240,7 +244,8 @@ export const WebSocketProvider = ({ children }) => {
             sendCommand,
             lastMessage,
             wsUrl,
-            connectionError
+            connectionError,
+            availableModels
         }}>
             {children}
         </WebSocketContext.Provider>
